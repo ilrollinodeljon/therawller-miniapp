@@ -20,7 +20,7 @@ export default function Topbar({ onBack, backLabel = '← Indietro', onSupport, 
             left: 16,
             top: '50%',
             transform: 'translateY(-50%)',
-            width: 36,
+            width: 38,
             height: 36,
             borderRadius: '50%',
             objectFit: 'cover',
@@ -110,4 +110,4 @@ export default function Topbar({ onBack, backLabel = '← Indietro', onSupport, 
       )}
     </div>
   );
-} 
+}
