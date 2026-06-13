@@ -16,6 +16,16 @@ export const SHOP_CONFIG = {
   // Orders group chat ID (set in .env as VITE_ORDER_CHAT_ID)
 };
 
+// ============================================================
+//  CATEGORIES — Define your shop sections here
+//  Add as many as you want. Order here = order in the shop.
+// ============================================================
+export const CATEGORIES = [
+  { id: "new",   label: "🔥 New Arrivals", showIfEmpty: false },
+  { id: "hash",  label: "🍫 Hash",         showIfEmpty: false },
+  { id: "weed",  label: "🌿 Weed",         showIfEmpty: false },
+];
+
 export const DELIVERY_METHODS = [
   {
     id: "delivery_pavia",
@@ -69,9 +79,9 @@ export const PAYMENT_METHODS = [
 
 export const PRODUCTS = [
   {
-    id: "plasma_static",
-    name: "Plasma Static",
+
     soldOut: true,
+    category: "hash",
     brand: "H.C.M.",
     emoji: "⚡",
     description: "Electro plasma static.",
@@ -104,6 +114,8 @@ export const PRODUCTS = [
 
   id: "fresh_frozen",
   name: "fresh frozen",
+  category: "hash",
+  isNew: true,
   brand: "H.C.M.",
   emoji: "❄️",
   description: "fresh frozen",
@@ -136,6 +148,8 @@ export const PRODUCTS = [
   {
   id: "bufalo_plein",
   name: "filtered 120u",
+  category: "hash",
+  isNew: false,
   brand: "Bufalo Plein",
   emoji: "",
   description: "filtered 120u",
@@ -168,6 +182,8 @@ export const PRODUCTS = [
  {
   id: "filtered_90u",
   name: "WT Filtrato 90u",
+  category: "hash",
+  isNew: true,
   brand: null,
   emoji: "🎁",
   description: "dry 90u.",
