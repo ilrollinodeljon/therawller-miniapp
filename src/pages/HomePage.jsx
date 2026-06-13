@@ -53,7 +53,7 @@ export default function HomePage({ onNavigate, onTabChange }) {
         {/* Row 2: Telegram + Instagram - Slimmer + More Transparent */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 28 }}>
           <a 
-  href="https://t.me/therawller" 
+  href="https://t.me/ilrawller" 
   target="_blank" 
   rel="noreferrer"
   className="btn btn-ghost"
