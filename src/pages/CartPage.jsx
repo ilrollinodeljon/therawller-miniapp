@@ -20,9 +20,36 @@ export default function CartPage() {
   const [notes, setNotes] = useState(checkoutData.notes || '');
   const [discount, setDiscount] = useState(checkoutData.discount || '');
   const [preferredDate, setPreferredDate] = useState(checkoutData.preferredDate || '');
+  const [location, setLocation] = useState(null);
+  const [locating, setLocating] = useState(false);
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) { setError('Geolocalizzazione non supportata.'); return; }
+    setLocating(true);
+    setError('');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        let label = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+          const d = await r.json();
+          label = d.display_name?.split(',').slice(0, 3).join(', ') || label;
+        } catch {}
+        setLocation({ lat, lng, label });
+        setLocating(false);
+        window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('light');
+      },
+      (err) => {
+        setLocating(false);
+        setError(err.code === 1 ? 'Permesso posizione negato. Abilitalo nelle impostazioni.' : 'Impossibile ottenere la posizione. Riprova.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const total = getCartTotal(cart);
   const isDelivery = delivery === 'delivery_pavia';
@@ -80,7 +107,7 @@ export default function CartPage() {
   };
 
   const availablePayments = isDelivery
-    ? [{ id: 'crypto', label: 'Crypto', icon: '₿' }, { id: 'cash', label: 'Cash', icon: '💵' }]
+    ? [{ id: 'cash', label: 'Cash', icon: '💵' }, { id: 'crypto', label: 'Crypto', icon: '₿' }]
     : [{ id: 'crypto', label: 'Crypto', icon: '₿' }, { id: 'iban', label: 'IBAN/Bonifico', icon: '🏦' }];
 
   const handleSubmit = async () => {
@@ -97,6 +124,7 @@ export default function CartPage() {
         delivery: deliveryMethod?.label,
         courier: isDelivery ? null : courierObj?.label,
         address,
+        location,
         payment: availablePayments.find(p => p.id === payment)?.label,
         notes,
         discount,
@@ -214,7 +242,7 @@ export default function CartPage() {
                   <div
                     key={d.id}
                     className={`delivery-option ${delivery === d.id ? 'active' : ''}`}
-                    onClick={() => { setDelivery(d.id); updateCheckoutData({ delivery: d.id, payment: 'crypto' }); setPayment('crypto'); }}
+                    onClick={() => { setDelivery(d.id); const defaultPay = d.id === 'delivery_pavia' ? 'cash' : 'crypto'; updateCheckoutData({ delivery: d.id, payment: defaultPay }); setPayment(defaultPay); }}
                   >
                     <div style={{ fontSize: 20, marginBottom: 4 }}>{d.icon}</div>
                     {d.label}
@@ -272,6 +300,49 @@ export default function CartPage() {
                   <input className="field" placeholder="Numero di Telefono" type="tel" value={address.telefono || ''} onChange={e => setField('telefono', e.target.value)} />
                   <input className="field" placeholder="Via e numero civico" value={address.indirizzo || ''} onChange={e => setField('indirizzo', e.target.value)} />
                   <input className="field" placeholder="Città" value={address.citta || ''} onChange={e => setField('citta', e.target.value)} />
+
+                  {/* Location share button */}
+                  <button
+                    type="button"
+                    onClick={requestLocation}
+                    disabled={locating}
+                    style={{
+                      width: '100%', marginTop: 4,
+                      padding: '14px 16px',
+                      borderRadius: 100,
+                      border: '2px solid',
+                      borderColor: location ? 'rgba(125,217,154,0.6)' : 'rgba(255,255,255,0.15)',
+                      background: location ? 'rgba(61,170,92,0.12)' : 'rgba(255,255,255,0.04)',
+                      color: '#fff', fontSize: 14, fontWeight: 700,
+                      cursor: locating ? 'wait' : 'pointer',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: location
+                        ? 'inset 0 1.5px 0 rgba(255,255,255,0.18), 0 4px 16px rgba(61,170,92,0.2)'
+                        : 'inset 0 1.5px 0 rgba(255,255,255,0.08)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {locating ? '⏳ Rilevamento...' : location ? '✅ Posizione condivisa' : '📍USA LA MIA POSIZIONE ATTUALE'}
+                  </button>
+
+                  {location && (
+                    <div style={{
+                      marginTop: 10, padding: '10px 14px',
+                      background: 'var(--surface2)',
+                      border: '1px solid rgba(125,217,154,0.2)',
+                      borderRadius: 12,
+                      display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8,
+                    }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-sub)', lineHeight: 1.5, flex: 1 }}>
+                        📍 {location.label}
+                      </div>
+                      <button
+                        onClick={() => setLocation(null)}
+                        style={{ background: 'none', border: 'none', color: '#ff6b6b', fontSize: 12, cursor: 'pointer', flexShrink: 0, padding: 0 }}
+                      >✕</button>
+                    </div>
+                  )}
                 </div>
               ) : courier === 'inpost' ? (
                 <div className="field-group">
@@ -371,6 +442,25 @@ export default function CartPage() {
                   </div>
                 ))}
               </div>
+
+              {payment === 'crypto' && (
+                <div style={{
+                  marginTop: 12, padding: '14px',
+                  background: 'var(--surface2)',
+                  border: '1px solid rgba(244,197,66,0.2)',
+                  borderRadius: 14,
+                }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 6 }}>
+                    💳 Invia a questo indirizzo ({SHOP_CONFIG.cryptoWallet?.coin} · {SHOP_CONFIG.cryptoWallet?.network}):
+                  </div>
+                  <div style={{
+                    fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all',
+                    color: 'var(--gold)', fontWeight: 700, lineHeight: 1.6,
+                  }}>
+                    {SHOP_CONFIG.cryptoWallet?.address}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Total recap */}

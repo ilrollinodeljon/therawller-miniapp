@@ -14,6 +14,13 @@ export const SHOP_CONFIG = {
   minOrderShipping: 100,
   // Telegram Bot token (set in .env as VITE_BOT_TOKEN)
   // Orders group chat ID (set in .env as VITE_ORDER_CHAT_ID)
+
+  // Crypto payment wallet — shown to user when they select Crypto
+  cryptoWallet: {
+    address: "YOUR_WALLET_ADDRESS_HERE",  // ← paste your wallet address here
+    network: "TRC20",                      // ← e.g. TRC20, ERC20, BEP20
+    coin: "USDT",                          // ← e.g. USDT, BTC, ETH
+  },
 };
 
 // ============================================================
@@ -79,7 +86,8 @@ export const PAYMENT_METHODS = [
 
 export const PRODUCTS = [
   {
-
+    id: "plasma_static",
+    name: "Plasma Static",
     soldOut: true,
     category: "hash",
     brand: "H.C.M.",
@@ -113,7 +121,7 @@ export const PRODUCTS = [
   {
 
   id: "fresh_frozen",
-  name: "fresh frozen",
+  name: "Fresh frozen s.2026",
   category: "hash",
   isNew: true,
   brand: "H.C.M.",
@@ -184,7 +192,7 @@ export const PRODUCTS = [
   name: "WT Filtrato 90u",
   category: "hash",
   isNew: true,
-  brand: null,
+  brand: "Hash Angels",
   emoji: "🎁",
   description: "dry 90u.",
   media: [
